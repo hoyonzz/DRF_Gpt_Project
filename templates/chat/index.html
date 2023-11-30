@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Chat</h2>
+    <div id="chatHistory"></div>
+    <form id="chatForm">
+        <div class="form-group">
+            <label for="message">Message</label>
+            <input type="text" id="message" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    var token = localStorage.getItem('token');
+
+    fetch('/api/chat/', {
+        headers: {
+            'Authorization': 'Token ' + token,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        var chatHistory = document.getElementById('chatHistory');
+        data.forEach(function(chat) {
+            var p = document.createElement('p');
+            p.textContent = chat.message + ' -> ' + chat.response;
+            chatHistory.appendChild(p);
+        });
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+
+    document.getElementById('chatForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        var message = document.getElementById('message').value;
+
+        fetch('/api/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Token ' + token,
+            },
+            body: JSON.stringify({
+                message: message,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            var chatHistory = document.getElementById('chatHistory');
+            var p = document.createElement('p');
+            p.textContent = data.message + ' -> ' + data.response;
+            chatHistory.appendChild(p);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+    });
+</script>
+{% endblock %}
